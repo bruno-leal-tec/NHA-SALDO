@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamefinity - Controle de Venda de Saldo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col justify-between">
+
+    <div>
+        <!-- Navbar Superior -->
+        <nav class="bg-slate-800 text-gray-200 px-6 py-3 flex justify-between items-center text-sm shadow">
+            <div class="font-medium">Gamefinity - Controle de Venda de Saldo Multi-Operadora</div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-gray-400 hidden sm:inline">Criador: <strong class="text-gray-200">Amilcar Leal</strong></span>
+                <button onclick="limparDados()" class="hover:text-white transition" title="Resetar Dados">
+                    <i class="fa-solid fa-right-from-bracket text-base"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Banner Central com Logotipo -->
+        <div class="bg-gradient-to-b from-slate-700 to-slate-800 py-8 px-4 flex justify-center items-center shadow-inner border-b border-slate-600">
+            <div class="bg-slate-900/60 p-4 rounded-2xl backdrop-blur-sm border border-slate-600/50 shadow-2xl flex justify-center items-center max-w-lg w-full">
+                <img src="467857706_472036485896950_7340205526327831387_n.jpg" alt="Gamefinity Online Game Store" class="h-28 md:h-36 w-auto object-contain drop-shadow-lg">
+            </div>
+        </div>
+
+        <!-- Barra de Subtítulo e Ações Rápidas -->
+        <div class="bg-slate-800 text-white px-6 py-4 shadow-md flex flex-wrap justify-between items-center gap-4">
+            <h1 class="text-xl font-bold tracking-wide">GAMEFINITY - Gestão de Venda de Saldo</h1>
+            <div class="flex items-center gap-3">
+                <button onclick="focarCompra()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                    Adicionar Saldo
+                </button>
+                <button onclick="filtrarPendentes()" class="bg-pink-300 hover:bg-pink-400 text-pink-950 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                    Pendente
+                </button>
+                <button onclick="focarVenda()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                    Confirmar Venda
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+
+            <!-- Cartões de Métricas (Dashboard Separado) -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Estoque ALOU -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 font-semibold text-xs uppercase">Estoque Alou</p>
+                        <h3 id="dash-estoque-alou" class="text-2xl font-black text-blue-600 mt-1">0,00 CVE</h3>
+                    </div>
+                    <div class="text-blue-400 text-2xl">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                </div>
+
+                <!-- Estoque UNITEL TMAIS -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 font-semibold text-xs uppercase">Estoque Unitel T+</p>
+                        <h3 id="dash-estoque-unitel" class="text-2xl font-black text-orange-600 mt-1">0,00 CVE</h3>
+                    </div>
+                    <div class="text-orange-400 text-2xl">
+                        <i class="fa-solid fa-signal"></i>
+                    </div>
+                </div>
+
+                <!-- Total Vendido -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 font-semibold text-xs uppercase">Total Vendido</p>
+                        <h3 id="dash-vendas" class="text-2xl font-black text-gray-800 mt-1">0,00 CVE</h3>
+                    </div>
+                    <div class="text-pink-300 text-2xl">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </div>
+                </div>
+
+                <!-- Lucro Estimado -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 font-semibold text-xs uppercase">Lucro Estimado</p>
+                        <h3 id="dash-lucro" class="text-2xl font-black text-emerald-600 mt-1">0,00 CVE</h3>
+                    </div>
+                    <div class="text-emerald-400 text-2xl">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulários Lado a Lado -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Form 1: Entrar com Novo Saldo (Azul) -->
+                <div class="bg-blue-600 text-white rounded-xl p-6 shadow-md space-y-4">
+                    <h2 class="text-lg font-bold">Entrar com Novo Saldo</h2>
+                    <form id="form-compra" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Operadora</label>
+                            <select id="compra-operadora" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                <option value="ALOU">ALOU (CV Móvel)</option>
+                                <option value="UNITEL">UNITEL T+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Novo Saldo Adquirido (CVE)</label>
+                            <input type="number" step="1" id="compra-saldo" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-blue-300" placeholder="Entrar com Saldo">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Custo Total Pago (CVE)</label>
+                            <input type="number" step="1" id="compra-custo" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-blue-300" placeholder="Custo Pago">
+                        </div>
+                        <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition">
+                            Entrar Saldo
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Form 2: Registrar Venda (Verde) -->
+                <div class="bg-emerald-600 text-white rounded-xl p-6 shadow-md space-y-4">
+                    <h2 class="text-lg font-bold">Registrar Venda</h2>
+                    <form id="form-venda" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Operadora</label>
+                                <select id="venda-operadora" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                    <option value="ALOU">ALOU</option>
+                                    <option value="UNITEL">UNITEL T+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Cliente / Venda</label>
+                                <input type="text" id="venda-cliente" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Nome do Cliente">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Saldo Vendido</label>
+                                <input type="number" step="1" id="venda-qtd" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none" placeholder="Qtd Saldo">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Valor Recebido (CVE)</label>
+                                <input type="number" step="1" id="venda-valor" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none" placeholder="Valor Total">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Status</label>
+                            <select id="venda-status" class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                <option value="Pago">Pago</option>
+                                <option value="Pendente">Pendente</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition">
+                            Registrar Venda
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Tabela de Histórico de Vendas -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+                <h2 class="text-lg font-bold text-gray-800">Histórico de Vendas</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-700 font-bold">
+                                <th class="py-3 px-4">Operadora</th>
+                                <th class="py-3 px-4">Cliente</th>
+                                <th class="py-3 px-4">Saldo Vendido</th>
+                                <th class="py-3 px-4">Valor Cobrado</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-center">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-vendas" class="divide-y divide-gray-100">
+                            <!-- Linhas geradas via Javascript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Rodapé com Informações do Criador -->
+    <footer class="bg-slate-800 text-gray-300 py-4 px-6 mt-8 border-t border-slate-700 text-center text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>© Gamefinity - Todos os direitos reservados</p>
+            <div class="flex flex-wrap justify-center items-center gap-4">
+                <span><i class="fa-solid fa-user text-amber-500 mr-1"></i> <strong>Criador:</strong> Amilcar Leal</span>
+                <span><i class="fa-solid fa-phone text-amber-500 mr-1"></i> <strong>Tel:</strong> +238 5977125</span>
+                <span><i class="fa-solid fa-envelope text-amber-500 mr-1"></i> <strong>Email:</strong> amilcarluzleal@gmail.com</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('gamefinity_exact_db')) || {
+            estoque: {
+                ALOU: { saldo: 0, custoMedio: 0 },
+                UNITEL: { saldo: 0, custoMedio: 0 }
+            },
+            vendas: []
+        };
+
+        // Migração de dados legados caso existisse a versão anterior sem separação
+        if (db.estoqueSaldo !== undefined) {
+            db = {
+                estoque: {
+                    ALOU: { saldo: db.estoqueSaldo || 0, custoMedio: db.custoMedioUnitario || 0 },
+                    UNITEL: { saldo: 0, custoMedio: 0 }
+                },
+                vendas: db.vendas ? db.vendas.map(v => ({ ...v, operadora: 'ALOU' })) : []
+            };
+        }
+
+        function formatarCVE(valor) {
+            return (valor || 0).toLocaleString('pt-CV', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " CVE";
+        }
+
+        function atualizarTela(filtro = 'todos') {
+            let totalVendido = db.vendas.reduce((acc, v) => acc + v.valor, 0);
+            
+            let lucroTotal = db.vendas.reduce((acc, v) => {
+                let op = v.operadora || 'ALOU';
+                let custoUnit = db.estoque[op] ? db.estoque[op].custoMedio : 0;
+                return acc + (v.valor - (v.saldo * custoUnit));
+            }, 0);
+
+            document.getElementById('dash-estoque-alou').innerText = formatarCVE(db.estoque.ALOU.saldo);
+            document.getElementById('dash-estoque-unitel').innerText = formatarCVE(db.estoque.UNITEL.saldo);
+            document.getElementById('dash-vendas').innerText = formatarCVE(totalVendido);
+            document.getElementById('dash-lucro').innerText = formatarCVE(lucroTotal);
+
+            const tbody = document.getElementById('lista-vendas');
+            tbody.innerHTML = '';
+
+            let vendasExibidas = db.vendas.slice().reverse();
+            if (filtro === 'pendente') {
+                vendasExibidas = vendasExibidas.filter(v => v.status === 'Pendente');
+            }
+
+            if (vendasExibidas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-400">Nenhuma venda registrada.</td></tr>`;
+            }
+
+            vendasExibidas.forEach((venda) => {
+                let indexOriginal = db.vendas.indexOf(venda);
+                let isPendente = venda.status === 'Pendente';
+                let op = venda.operadora || 'ALOU';
+                
+                let badgeOperadora = op === 'ALOU' 
+                    ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">ALOU</span>`
+                    : `<span class="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded font-bold">UNITEL T+</span>`;
+
+                let statusBadge = isPendente 
+                    ? `<span class="bg-pink-200 text-pink-900 px-3 py-1 rounded-md text-xs font-bold">Pendente</span>`
+                    : `<span class="bg-emerald-500 text-white px-3 py-1 rounded-md text-xs font-bold">Pago</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="py-3 px-4">${badgeOperadora}</td>
+                        <td class="py-3 px-4 font-semibold text-gray-800">${venda.cliente}</td>
+                        <td class="py-3 px-4 text-gray-600">${formatarCVE(venda.saldo)}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${formatarCVE(venda.valor)}</td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4 text-center">
+                            ${isPendente ? `<button onclick="marcarPago(${indexOriginal})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1 rounded font-bold transition">Receber</button>` : '<i class="fa-solid fa-check text-emerald-500"></i>'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            localStorage.setItem('gamefinity_exact_db', JSON.stringify(db));
+        }
+
+        document.getElementById('form-compra').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const operadora = document.getElementById('compra-operadora').value;
+            const saldo = parseFloat(document.getElementById('compra-saldo').value);
+            const custo = parseFloat(document.getElementById('compra-custo').value);
+
+            db.estoque[operadora].custoMedio = custo / saldo;
+            db.estoque[operadora].saldo += saldo;
+            
+            e.target.reset();
+            atualizarTela();
+        });
+
+        document.getElementById('form-venda').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const operadora = document.getElementById('venda-operadora').value;
+            const cliente = document.getElementById('venda-cliente').value;
+            const saldo = parseFloat(document.getElementById('venda-qtd').value);
+            const valor = parseFloat(document.getElementById('venda-valor').value);
+            const status = document.getElementById('venda-status').value;
+
+            if (saldo > db.estoque[operadora].saldo) {
+                alert(`Saldo insuficiente no estoque da ${operadora}!`);
+                return;
+            }
+
+            db.estoque[operadora].saldo -= saldo;
+            db.vendas.push({ operadora, cliente, saldo, valor, status });
+
+            e.target.reset();
+            atualizarTela();
+        });
+
+        function marcarPago(index) {
+            db.vendas[index].status = 'Pago';
+            atualizarTela();
+        }
+
+        function focarCompra() {
+            document.getElementById('compra-saldo').focus();
+        }
+
+        function focarVenda() {
+            document.getElementById('venda-cliente').focus();
+        }
+
+        function filtrarPendentes() {
+            atualizarTela('pendente');
+        }
+
+        function limparDados() {
+            if (confirm('Deseja apagar todos os dados registrados?')) {
+                localStorage.removeItem('gamefinity_exact_db');
+                location.reload();
+            }
+        }
+
+        atualizarTela();
+    </script>
+</body>
+</html>
