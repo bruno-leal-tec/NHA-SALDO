@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamefinity - Controle de Venda de Saldo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Interatividade e animações do Logotipo em código (SVG + CSS) */
+        .gf-logo-container {
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+
+        .gf-logo-container:hover {
+            transform: translateY(-6px) scale(1.05);
+            filter: drop-shadow(0 15px 25px rgba(0, 210, 255, 0.4));
+        }
+
+        .gf-logo-container:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        /* Animação dos elementos do logo no hover */
+        .gf-logo-container .logo-arc-top {
+            transition: transform 0.5s ease, fill 0.3s ease;
+            transform-origin: center;
+        }
+        .gf-logo-container:hover .logo-arc-top {
+            transform: rotate(-12deg) scale(1.08);
+            fill: url(#cyan-blue-hover);
+        }
+
+        .gf-logo-container .logo-arc-bottom {
+            transition: transform 0.5s ease, fill 0.3s ease;
+            transform-origin: center;
+        }
+        .gf-logo-container:hover .logo-arc-bottom {
+            transform: rotate(12deg) scale(1.08);
+            fill: url(#magenta-pink-hover);
+        }
+
+        .gf-logo-container .logo-text-game {
+            transition: all 0.3s ease;
+        }
+        .gf-logo-container:hover .logo-text-game {
+            fill: #ffffff;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+        }
+
+        .gf-logo-container .logo-text-sub {
+            transition: all 0.3s ease;
+            letter-spacing: 4px;
+        }
+        .gf-logo-container:hover .logo-text-sub {
+            letter-spacing: 6px;
+            fill: #fbbf24;
+        }
+
+        /* Efeito de iluminação suave do card */
+        .banner-card {
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .banner-card:hover {
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 35px rgba(14, 165, 233, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Modal de Autenticação (Login / Cadastro) -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900 bg-opacity-95 z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl text-white">
+            
+            <!-- Logotipo em SVG interativo (Sem foto) -->
+            <div class="flex justify-center mb-6">
+                <div class="gf-logo-container bg-slate-900/80 p-4 rounded-2xl border border-slate-700 shadow-inner flex items-center justify-center">
+                    <svg viewBox="0 0 520 160" class="h-16 w-auto" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="cyan-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00D2FF" />
+                                <stop offset="100%" stop-color="#0052D4" />
+                            </linearGradient>
+                            <linearGradient id="magenta-pink" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#FF007F" />
+                                <stop offset="100%" stop-color="#7928CA" />
+                            </linearGradient>
+                            <linearGradient id="cyan-blue-hover" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#38BDF8" />
+                                <stop offset="100%" stop-color="#2563EB" />
+                            </linearGradient>
+                            <linearGradient id="magenta-pink-hover" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#F43F5E" />
+                                <stop offset="100%" stop-color="#D946EF" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Arco Superior -->
+                        <path class="logo-arc-top" d="M 30,85 A 50,50 0 1,1 125,50 A 35,35 0 0,0 45,78 Z" fill="url(#cyan-blue)" />
+                        <!-- Arco Inferior -->
+                        <path class="logo-arc-bottom" d="M 125,75 A 50,50 0 1,1 30,110 A 35,35 0 0,0 110,82 Z" fill="url(#magenta-pink)" />
+                        <!-- Texto GAMEFINITY -->
+                        <text x="140" y="95" font-family="'Montserrat', 'Arial Black', sans-serif" font-weight="900" font-size="52" fill="#FFFFFF" class="logo-text-game" letter-spacing="-1">GAMEFINITY</text>
+                        <!-- Subtítulo -->
+                        <text x="145" y="125" font-family="'Arial', sans-serif" font-weight="700" font-size="16" fill="#00D2FF" class="logo-text-sub">ONLINE GAME STORE</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="text-center mb-6">
+                <h2 id="auth-title" class="text-2xl font-bold tracking-wide">Acessar Sistema</h2>
+                <p id="auth-subtitle" class="text-xs text-gray-400 mt-1">Insira suas credenciais para continuar</p>
+            </div>
+
+            <!-- Form de Login -->
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">E-mail Cadastrado</label>
+                    <input type="email" id="login-email" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-amber-500 text-sm" placeholder="seuemail@dominio.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">Senha</label>
+                    <input type="password" id="login-senha" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-amber-500 text-sm" placeholder="Digite sua senha">
+                </div>
+                
+                <div id="msg-erro-login" class="text-xs text-red-400 font-semibold text-center hidden"></div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2.5 rounded-lg transition text-sm shadow">
+                    Entrar
+                </button>
+                <p class="text-xs text-center text-gray-400 mt-3">
+                    Não tem uma conta? <button type="button" onclick="alternarAuth('cadastrar')" class="text-amber-400 underline font-semibold">Cadastrar-se</button>
+                </p>
+            </form>
+
+            <!-- Form de Cadastro -->
+            <form id="form-cadastro" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">Seu Nome</label>
+                    <input type="text" id="cad-nome" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-emerald-500 text-sm" placeholder="Seu nome completo">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">Seu E-mail Real</label>
+                    <input type="email" id="cad-email" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-emerald-500 text-sm" placeholder="exemplo@email.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">Criar Senha (mín. 6 caracteres)</label>
+                    <input type="password" id="cad-senha" minlength="6" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-emerald-500 text-sm" placeholder="Crie uma palavra-passe forte">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium mb-1 text-gray-300">Confirmar Senha</label>
+                    <input type="password" id="cad-senha-conf" minlength="6" required class="w-full p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-white outline-none focus:border-emerald-500 text-sm" placeholder="Repita a palavra-passe">
+                </div>
+
+                <div id="msg-erro-cad" class="text-xs text-red-400 font-semibold text-center hidden"></div>
+
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-lg transition text-sm shadow">
+                    Criar Conta
+                </button>
+                <p class="text-xs text-center text-gray-400 mt-3">
+                    Já tem uma conta? <button type="button" onclick="alternarAuth('login')" class="text-emerald-400 underline font-semibold">Fazer Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div id="conteudo-sistema" class="hidden flex-col justify-between min-h-screen">
+        <div>
+            <!-- Navbar Superior -->
+            <nav class="bg-slate-800 text-gray-200 px-6 py-3 flex justify-between items-center text-sm shadow">
+                <div class="font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-cyan-400 text-base"></i>
+                    Gamefinity - Controle de Venda de Saldo Multi-Operadora
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-xs text-gray-400 hidden sm:inline">Criador: <strong class="text-gray-200">Amilcar Leal</strong></span>
+                    <button onclick="fazerLogout()" class="hover:text-red-400 transition flex items-center gap-1 text-xs bg-slate-700 px-2.5 py-1 rounded border border-slate-600" title="Sair da Conta">
+                        <i class="fa-solid fa-right-from-bracket"></i> Sair
+                    </button>
+                    <button onclick="limparDados()" class="hover:text-white transition" title="Resetar Dados">
+                        <i class="fa-solid fa-trash text-base"></i>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Banner Central com Logotipo SVG Interativo (SEM FOTO) -->
+            <div class="bg-gradient-to-b from-slate-700 to-slate-800 py-8 px-4 flex justify-center items-center shadow-inner border-b border-slate-600">
+                <div class="banner-card bg-slate-900/80 p-6 rounded-2xl backdrop-blur-md border border-slate-600/60 shadow-2xl flex justify-center items-center max-w-lg w-full">
+                    
+                    <div class="gf-logo-container flex items-center justify-center w-full">
+                        <svg viewBox="0 0 520 160" class="h-24 md:h-32 w-auto" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="cyan-blue-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00D2FF" />
+                                    <stop offset="100%" stop-color="#0052D4" />
+                                </linearGradient>
+                                <linearGradient id="magenta-pink-main" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#FF007F" />
+                                    <stop offset="100%" stop-color="#7928CA" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Simbolo Orbital Interativo -->
+                            <path class="logo-arc-top" d="M 30,85 A 50,50 0 1,1 125,50 A 35,35 0 0,0 45,78 Z" fill="url(#cyan-blue-main)" />
+                            <path class="logo-arc-bottom" d="M 125,75 A 50,50 0 1,1 30,110 A 35,35 0 0,0 110,82 Z" fill="url(#magenta-pink-main)" />
+                            
+                            <!-- Texto Principal GAMEFINITY -->
+                            <text x="140" y="95" font-family="'Montserrat', 'Arial Black', sans-serif" font-weight="900" font-size="52" fill="#FFFFFF" class="logo-text-game" letter-spacing="-1">GAMEFINITY</text>
+                            
+                            <!-- Subtítulo STORE -->
+                            <text x="145" y="125" font-family="'Arial', sans-serif" font-weight="700" font-size="16" fill="#00D2FF" class="logo-text-sub">ONLINE GAME STORE</text>
+                        </svg>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Barra de Subtítulo e Ações Rápidas -->
+            <div class="bg-slate-800 text-white px-6 py-4 shadow-md flex flex-wrap justify-between items-center gap-4">
+                <h1 class="text-xl font-bold tracking-wide">GAMEFINITY - Gestão de Venda de Saldo</h1>
+                <div class="flex items-center gap-3">
+                    <button onclick="focarCompra()" class="bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                        Adicionar Saldo
+                    </button>
+                    <button onclick="filtrarPendentes()" class="bg-pink-300 hover:bg-pink-400 text-pink-950 font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                        Pendente
+                    </button>
+                    <button onclick="focarVenda()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition">
+                        Confirmar Venda
+                    </button>
+                </div>
+            </div>
+
+            <!-- Conteúdo Principal -->
+            <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+
+                <!-- Cartões de Métricas -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Estoque ALOU -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 font-semibold text-xs uppercase">Estoque Alou</p>
+                            <h3 id="dash-estoque-alou" class="text-2xl font-black text-blue-600 mt-1">0,00 CVE</h3>
+                        </div>
+                        <div class="text-blue-400 text-2xl">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </div>
+                    </div>
+
+                    <!-- Estoque UNITEL TMAIS -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 font-semibold text-xs uppercase">Estoque Unitel T+</p>
+                            <h3 id="dash-estoque-unitel" class="text-2xl font-black text-orange-600 mt-1">0,00 CVE</h3>
+                        </div>
+                        <div class="text-orange-400 text-2xl">
+                            <i class="fa-solid fa-signal"></i>
+                        </div>
+                    </div>
+
+                    <!-- Total Vendido -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 font-semibold text-xs uppercase">Total Vendido</p>
+                            <h3 id="dash-vendas" class="text-2xl font-black text-gray-800 mt-1">0,00 CVE</h3>
+                        </div>
+                        <div class="text-pink-300 text-2xl">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                    </div>
+
+                    <!-- Lucro Estimado -->
+                    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 font-semibold text-xs uppercase">Lucro Estimado</p>
+                            <h3 id="dash-lucro" class="text-2xl font-black text-emerald-600 mt-1">0,00 CVE</h3>
+                        </div>
+                        <div class="text-emerald-400 text-2xl">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formulários Lado a Lado -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Form 1: Entrar com Novo Saldo -->
+                    <div class="bg-blue-600 text-white rounded-xl p-6 shadow-md space-y-4">
+                        <h2 class="text-lg font-bold">Entrar com Novo Saldo</h2>
+                        <form id="form-compra" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Operadora</label>
+                                <select id="compra-operadora" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                    <option value="ALOU">ALOU (CV Móvel)</option>
+                                    <option value="UNITEL">UNITEL T+</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Novo Saldo Adquirido (CVE)</label>
+                                <input type="number" step="1" id="compra-saldo" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-blue-300" placeholder="Entrar com Saldo">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Custo Total Pago (CVE)</label>
+                                <input type="number" step="1" id="compra-custo" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-blue-300" placeholder="Custo Pago">
+                            </div>
+                            <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition">
+                                Entrar Saldo
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Form 2: Registrar Venda -->
+                    <div class="bg-emerald-600 text-white rounded-xl p-6 shadow-md space-y-4">
+                        <h2 class="text-lg font-bold">Registrar Venda</h2>
+                        <form id="form-venda" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Operadora</label>
+                                    <select id="venda-operadora" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                        <option value="ALOU">ALOU</option>
+                                        <option value="UNITEL">UNITEL T+</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Cliente / Venda</label>
+                                    <input type="text" id="venda-cliente" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Nome do Cliente">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Saldo Vendido</label>
+                                    <input type="number" step="1" id="venda-qtd" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none" placeholder="Qtd Saldo">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium mb-1">Valor Recebido (CVE)</label>
+                                    <input type="number" step="1" id="venda-valor" required class="w-full p-2.5 rounded-lg text-gray-800 outline-none" placeholder="Valor Total">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium mb-1">Status</label>
+                                <select id="venda-status" class="w-full p-2.5 rounded-lg text-gray-800 outline-none">
+                                    <option value="Pago">Pago</option>
+                                    <option value="Pendente">Pendente</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-lg text-sm shadow transition">
+                                Registrar Venda
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+
+                <!-- Tabela de Histórico de Vendas -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+                    <h2 class="text-lg font-bold text-gray-800">Histórico de Vendas</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-700 font-bold">
+                                    <th class="py-3 px-4">Operadora</th>
+                                    <th class="py-3 px-4">Cliente</th>
+                                    <th class="py-3 px-4">Saldo Vendido</th>
+                                    <th class="py-3 px-4">Valor Cobrado</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4 text-center">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-vendas" class="divide-y divide-gray-100">
+                                <!-- Linhas geradas via Javascript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- Rodapé -->
+        <footer class="bg-slate-800 text-gray-300 py-4 px-6 mt-8 border-t border-slate-700 text-center text-xs">
+            <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+                <p>© Gamefinity - Todos os direitos reservados</p>
+                <div class="flex flex-wrap justify-center items-center gap-4">
+                    <span><i class="fa-solid fa-user text-amber-500 mr-1"></i> <strong>Criador:</strong> Amilcar Leal</span>
+                    <span><i class="fa-solid fa-phone text-amber-500 mr-1"></i> <strong>Tel:</strong> +238 5977125</span>
+                    <span><i class="fa-solid fa-envelope text-amber-500 mr-1"></i> <strong>Email:</strong> amilcarluzleal@gmail.com</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        let usuariosDB = JSON.parse(localStorage.getItem('gamefinity_usuarios')) || [];
+        let usuarioLogado = localStorage.getItem('gamefinity_sessao_ativa');
+
+        const TEMPO_BLOQUEIO_MS = 3 * 60 * 60 * 1000; 
+
+        function mostrarErroLogin(msg) {
+            const el = document.getElementById('msg-erro-login');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+
+        function ocultarErros() {
+            document.getElementById('msg-erro-login').classList.add('hidden');
+            document.getElementById('msg-erro-cad').classList.add('hidden');
+        }
+
+        function validarEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function verificarAutenticacao() {
+            if (usuarioLogado) {
+                document.getElementById('auth-modal').classList.add('hidden');
+                document.getElementById('conteudo-sistema').classList.remove('hidden');
+                document.getElementById('conteudo-sistema').classList.add('flex');
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+                document.getElementById('conteudo-sistema').classList.add('hidden');
+                document.getElementById('conteudo-sistema').classList.remove('flex');
+            }
+        }
+
+        function alternarAuth(tipo) {
+            ocultarErros();
+            const formLogin = document.getElementById('form-login');
+            const formCadastro = document.getElementById('form-cadastro');
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+
+            if (tipo === 'cadastrar') {
+                formLogin.classList.add('hidden');
+                formCadastro.classList.remove('hidden');
+                title.innerText = 'Criar Nova Conta Real';
+                subtitle.innerText = 'Insira seus dados reais para se cadastrar';
+            } else {
+                formCadastro.classList.add('hidden');
+                formLogin.classList.remove('hidden');
+                title.innerText = 'Acessar Sistema';
+                subtitle.innerText = 'Insira suas credenciais para continuar';
+            }
+        }
+
+        document.getElementById('form-cadastro').addEventListener('submit', (e) => {
+            e.preventDefault();
+            ocultarErros();
+
+            const nome = document.getElementById('cad-nome').value.trim();
+            const email = document.getElementById('cad-email').value.trim().toLowerCase();
+            const senha = document.getElementById('cad-senha').value;
+            const senhaConf = document.getElementById('cad-senha-conf').value;
+            const msgErro = document.getElementById('msg-erro-cad');
+
+            if (!validarEmail(email)) {
+                msgErro.innerText = 'Por favor, insira um e-mail válido.';
+                msgErro.classList.remove('hidden');
+                return;
+            }
+
+            if (senha !== senhaConf) {
+                msgErro.innerText = 'As palavras-passe não coincidem.';
+                msgErro.classList.remove('hidden');
+                return;
+            }
+
+            if (usuariosDB.some(u => u.email === email)) {
+                msgErro.innerText = 'Este e-mail já está cadastrado no sistema!';
+                msgErro.classList.remove('hidden');
+                return;
+            }
+
+            usuariosDB.push({
+                nome,
+                email,
+                senha,
+                tentativasIncorretas: 0,
+                bloqueadoAte: null
+            });
+
+            localStorage.setItem('gamefinity_usuarios', JSON.stringify(usuariosDB));
+            alert('Conta criada com sucesso! Faça login com suas credenciais.');
+            e.target.reset();
+            alternarAuth('login');
+        });
+
+        document.getElementById('form-login').addEventListener('submit', (e) => {
+            e.preventDefault();
+            ocultarErros();
+
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const senha = document.getElementById('login-senha').value;
+
+            let usuarioIndex = usuariosDB.findIndex(u => u.email === email);
+
+            if (usuarioIndex === -1) {
+                mostrarErroLogin('E-mail não encontrado ou conta inexistente.');
+                return;
+            }
+
+            let usuario = usuariosDB[usuarioIndex];
+            let agora = Date.now();
+
+            if (usuario.bloqueadoAte && agora < usuario.bloqueadoAte) {
+                let tempoRestanteMs = usuario.bloqueadoAte - agora;
+                let horas = Math.floor(tempoRestanteMs / (1000 * 60 * 60));
+                let minutos = Math.ceil((tempoRestanteMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                mostrarErroLogin(`Conta inativa devido a 3 tentativas incorretas. Tente novamente em ${horas}h e ${minutos}min.`);
+                return;
+            }
+
+            if (usuario.bloqueadoAte && agora >= usuario.bloqueadoAte) {
+                usuario.bloqueadoAte = null;
+                usuario.tentativasIncorretas = 0;
+            }
+
+            if (usuario.senha === senha) {
+                usuario.tentativasIncorretas = 0;
+                usuario.bloqueadoAte = null;
+                localStorage.setItem('gamefinity_usuarios', JSON.stringify(usuariosDB));
+
+                localStorage.setItem('gamefinity_sessao_ativa', usuario.email);
+                usuarioLogado = usuario.email;
+                verificarAutenticacao();
+            } else {
+                usuario.tentativasIncorretas = (usuario.tentativasIncorretas || 0) + 1;
+
+                if (usuario.tentativasIncorretas >= 3) {
+                    usuario.bloqueadoAte = agora + TEMPO_BLOQUEIO_MS;
+                    localStorage.setItem('gamefinity_usuarios', JSON.stringify(usuariosDB));
+                    mostrarErroLogin('Palavra-passe errada 3 vezes! Sua conta ficou inativa por 3 horas.');
+                } else {
+                    let restantes = 3 - usuario.tentativasIncorretas;
+                    localStorage.setItem('gamefinity_usuarios', JSON.stringify(usuariosDB));
+                    mostrarErroLogin(`Palavra-passe incorreta. Você tem mais ${restantes} tentativa(s) antes do bloqueio por 3h.`);
+                }
+            }
+        });
+
+        function fazerLogout() {
+            localStorage.removeItem('gamefinity_sessao_ativa');
+            usuarioLogado = null;
+            verificarAutenticacao();
+        }
+
+        let db = JSON.parse(localStorage.getItem('gamefinity_exact_db')) || {
+            estoque: {
+                ALOU: { saldo: 0, custoMedio: 0 },
+                UNITEL: { saldo: 0, custoMedio: 0 }
+            },
+            vendas: []
+        };
+
+        if (db.estoqueSaldo !== undefined) {
+            db = {
+                estoque: {
+                    ALOU: { saldo: db.estoqueSaldo || 0, custoMedio: db.custoMedioUnitario || 0 },
+                    UNITEL: { saldo: 0, custoMedio: 0 }
+                },
+                vendas: db.vendas ? db.vendas.map(v => ({ ...v, operadora: 'ALOU' })) : []
+            };
+        }
+
+        function formatarCVE(valor) {
+            return (valor || 0).toLocaleString('pt-CV', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " CVE";
+        }
+
+        function atualizarTela(filtro = 'todos') {
+            let totalVendido = db.vendas.reduce((acc, v) => acc + v.valor, 0);
+            
+            let lucroTotal = db.vendas.reduce((acc, v) => {
+                let op = v.operadora || 'ALOU';
+                let custoUnit = db.estoque[op] ? db.estoque[op].custoMedio : 0;
+                return acc + (v.valor - (v.saldo * custoUnit));
+            }, 0);
+
+            document.getElementById('dash-estoque-alou').innerText = formatarCVE(db.estoque.ALOU.saldo);
+            document.getElementById('dash-estoque-unitel').innerText = formatarCVE(db.estoque.UNITEL.saldo);
+            document.getElementById('dash-vendas').innerText = formatarCVE(totalVendido);
+            document.getElementById('dash-lucro').innerText = formatarCVE(lucroTotal);
+
+            const tbody = document.getElementById('lista-vendas');
+            tbody.innerHTML = '';
+
+            let vendasExibidas = db.vendas.slice().reverse();
+            if (filtro === 'pendente') {
+                vendasExibidas = vendasExibidas.filter(v => v.status === 'Pendente');
+            }
+
+            if (vendasExibidas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-gray-400">Nenhuma venda registrada.</td></tr>`;
+            }
+
+            vendasExibidas.forEach((venda) => {
+                let indexOriginal = db.vendas.indexOf(venda);
+                let isPendente = venda.status === 'Pendente';
+                let op = venda.operadora || 'ALOU';
+                
+                let badgeOperadora = op === 'ALOU' 
+                    ? `<span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold">ALOU</span>`
+                    : `<span class="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded font-bold">UNITEL T+</span>`;
+
+                let statusBadge = isPendente 
+                    ? `<span class="bg-pink-200 text-pink-900 px-3 py-1 rounded-md text-xs font-bold">Pendente</span>`
+                    : `<span class="bg-emerald-500 text-white px-3 py-1 rounded-md text-xs font-bold">Pago</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="py-3 px-4">${badgeOperadora}</td>
+                        <td class="py-3 px-4 font-semibold text-gray-800">${venda.cliente}</td>
+                        <td class="py-3 px-4 text-gray-600">${formatarCVE(venda.saldo)}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${formatarCVE(venda.valor)}</td>
+                        <td class="py-3 px-4">${statusBadge}</td>
+                        <td class="py-3 px-4 text-center">
+                            ${isPendente ? `<button onclick="marcarPago(${indexOriginal})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1 rounded font-bold transition">Receber</button>` : '<i class="fa-solid fa-check text-emerald-500"></i>'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            localStorage.setItem('gamefinity_exact_db', JSON.stringify(db));
+        }
+
+        document.getElementById('form-compra').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const operadora = document.getElementById('compra-operadora').value;
+            const saldo = parseFloat(document.getElementById('compra-saldo').value);
+            const custo = parseFloat(document.getElementById('compra-custo').value);
+
+            db.estoque[operadora].custoMedio = custo / saldo;
+            db.estoque[operadora].saldo += saldo;
+            
+            e.target.reset();
+            atualizarTela();
+        });
+
+        document.getElementById('form-venda').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const operadora = document.getElementById('venda-operadora').value;
+            const cliente = document.getElementById('venda-cliente').value;
+            const saldo = parseFloat(document.getElementById('venda-qtd').value);
+            const valor = parseFloat(document.getElementById('venda-valor').value);
+            const status = document.getElementById('venda-status').value;
+
+            if (saldo > db.estoque[operadora].saldo) {
+                alert(`Saldo insuficiente no estoque da ${operadora}!`);
+                return;
+            }
+
+            db.estoque[operadora].saldo -= saldo;
+            db.vendas.push({ operadora, cliente, saldo, valor, status });
+
+            e.target.reset();
+            atualizarTela();
+        });
+
+        function marcarPago(index) {
+            db.vendas[index].status = 'Pago';
+            atualizarTela();
+        }
+
+        function focarCompra() {
+            document.getElementById('compra-saldo').focus();
+        }
+
+        function focarVenda() {
+            document.getElementById('venda-cliente').focus();
+        }
+
+        function filtrarPendentes() {
+            atualizarTela('pendente');
+        }
+
+        function limparDados() {
+            if (confirm('Deseja apagar todos os dados registrados?')) {
+                localStorage.removeItem('gamefinity_exact_db');
+                location.reload();
+            }
+        }
+
+        verificarAutenticacao();
+        atualizarTela();
+    </script>
+</body>
+</html>
